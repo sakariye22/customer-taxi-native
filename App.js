@@ -7,15 +7,6 @@ import LoginScreen from './screens/LoginScreen';
 import MapScreen from './screens/MapScreen';
 
 
-/*
-function MapScreen() {
-  return (
-    <View style={styles.screen}>
-      <Text>Map Screen</Text>
-    </View>
-  );
-}
-*/
 
 const Stack = createNativeStackNavigator();
 
