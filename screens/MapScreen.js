@@ -17,6 +17,23 @@ export default function MapScreen({ navigation }) {
 
       let currentLocation = await Location.getCurrentPositionAsync({});
       setLocation(currentLocation);
+
+      
+      fetch('http://localhost:3001/location', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          latitude: currentLocation.coords.latitude,
+          longitude: currentLocation.coords.longitude,
+        }),
+      })
+      .then(response => response.json())
+      .then(data => console.log(data))
+      .catch((error) => {
+        console.error('Error:', error);
+      });
     })();
   }, []);
 
