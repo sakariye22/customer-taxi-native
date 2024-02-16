@@ -6,6 +6,13 @@ import * as Location from 'expo-location';
 export default function MapScreen({ navigation }) {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [drivers, setDrivers] = useState([
+    ...Array.from({ length: 10 }, (_, index) => ({
+      id: `driver${index + 1}`,
+      latitude: 59.616417,
+      longitude: 17.853167,
+    })),
+  ]);
 
   useEffect(() => {
     (async () => {
@@ -18,22 +25,23 @@ export default function MapScreen({ navigation }) {
       let currentLocation = await Location.getCurrentPositionAsync({});
       setLocation(currentLocation);
 
-      
-      fetch('http://localhost:3001/location', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          latitude: currentLocation.coords.latitude,
-          longitude: currentLocation.coords.longitude,
-        }),
-      })
-      .then(response => response.json())
-      .then(data => console.log(data))
-      .catch((error) => {
-        console.error('Error:', error);
-      });
+     
+      setDrivers(drivers.map(driver => ({
+        ...driver,
+        latitude: 59.616417 + (Math.random() - 0.5) * 0.01, 
+        longitude: 17.853167 + (Math.random() - 0.5) * 0.01,
+      })));
+
+
+      const intervalId = setInterval(() => {
+        setDrivers(drivers.map(driver => ({
+          ...driver,
+          latitude: driver.latitude + (Math.random() - 0.5) * 0.002,
+          longitude: driver.longitude + (Math.random() - 0.5) * 0.002,
+        })));
+      }, 5000);
+
+      return () => clearInterval(intervalId); 
     })();
   }, []);
 
@@ -43,8 +51,8 @@ export default function MapScreen({ navigation }) {
         <MapView
           style={styles.map}
           initialRegion={{
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
+            latitude: 59.616417, 
+            longitude: 17.853167,
             latitudeDelta: 0.0922,
             longitudeDelta: 0.0421,
           }}
@@ -56,6 +64,17 @@ export default function MapScreen({ navigation }) {
             }}
             title="Your Location"
           />
+          {drivers.map(driver => (
+            <Marker
+              key={driver.id}
+              coordinate={{
+                latitude: driver.latitude,
+                longitude: driver.longitude,
+              }}
+              title={driver.id}
+              pinColor="blue" 
+            />
+          ))}
         </MapView>
       ) : (
         <Text>{errorMsg || "Requesting location..."}</Text>
