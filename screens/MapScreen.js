@@ -6,13 +6,7 @@ import * as Location from 'expo-location';
 export default function MapScreen({ navigation }) {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
-  const [drivers, setDrivers] = useState([
-    ...Array.from({ length: 10 }, (_, index) => ({
-      id: `driver${index + 1}`,
-      latitude: 59.616417,
-      longitude: 17.853167,
-    })),
-  ]);
+  const [drivers, setDrivers] = useState([]);
 
   useEffect(() => {
     (async () => {
@@ -25,25 +19,44 @@ export default function MapScreen({ navigation }) {
       let currentLocation = await Location.getCurrentPositionAsync({});
       setLocation(currentLocation);
 
-     
-      setDrivers(drivers.map(driver => ({
-        ...driver,
-        latitude: 59.616417 + (Math.random() - 0.5) * 0.01, 
-        longitude: 17.853167 + (Math.random() - 0.5) * 0.01,
-      })));
-
-
-      const intervalId = setInterval(() => {
-        setDrivers(drivers.map(driver => ({
-          ...driver,
-          latitude: driver.latitude + (Math.random() - 0.5) * 0.002,
-          longitude: driver.longitude + (Math.random() - 0.5) * 0.002,
-        })));
-      }, 5000);
-
-      return () => clearInterval(intervalId); 
+      fetchDriverLocations();
     })();
   }, []);
+
+  const fetchDriverLocations = async () => {
+    try {
+      const response = await fetch('http://192.168.1.93:3001/api/get-location/fordrivers');
+      const data = await response.json();
+      
+      if (response.ok) {
+        const transformedData = data.locations.map((location, index) => ({
+          id: index, 
+          latitude: location.lat,
+          longitude: location.lng,
+        }));
+        setDrivers(transformedData);
+      } else {
+        throw new Error(data.message || "Failed to fetch drivers' locations");
+      }
+    } catch (error) {
+      console.error(error);
+      setErrorMsg(error.message);
+    }
+  };
+  
+  {drivers.map((driver, index) => (
+    <Marker
+      key={index} 
+      coordinate={{
+        latitude: driver.latitude,
+        longitude: driver.longitude,
+      }}
+      title={`Driver ${index + 1}`} 
+      pinColor="blue"
+    />
+  ))}
+  
+  
 
   return (
     <View style={styles.container}>
@@ -51,8 +64,8 @@ export default function MapScreen({ navigation }) {
         <MapView
           style={styles.map}
           initialRegion={{
-            latitude: 59.616417, 
-            longitude: 17.853167,
+            latitude: location.coords.latitude, 
+            longitude: location.coords.longitude,
             latitudeDelta: 0.0922,
             longitudeDelta: 0.0421,
           }}
@@ -64,15 +77,15 @@ export default function MapScreen({ navigation }) {
             }}
             title="Your Location"
           />
-          {drivers.map(driver => (
+          {drivers.map((driver) => (
             <Marker
               key={driver.id}
               coordinate={{
                 latitude: driver.latitude,
                 longitude: driver.longitude,
               }}
-              title={driver.id}
-              pinColor="blue" 
+              title={`Driver ${driver.id}`}
+              pinColor="blue"
             />
           ))}
         </MapView>
