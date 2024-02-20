@@ -18,9 +18,11 @@ export default function MapScreen({ navigation }) {
 
       let currentLocation = await Location.getCurrentPositionAsync({});
       setLocation(currentLocation);
-
-      fetchDriverLocations();
     })();
+
+    const intervalId = setInterval(fetchDriverLocations, 10000); 
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const fetchDriverLocations = async () => {
@@ -43,6 +45,7 @@ export default function MapScreen({ navigation }) {
       setErrorMsg(error.message);
     }
   };
+
   
   {drivers.map((driver, index) => (
     <Marker
