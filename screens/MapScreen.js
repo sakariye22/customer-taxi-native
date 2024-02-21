@@ -27,14 +27,14 @@ export default function MapScreen({ navigation }) {
 
   const fetchDriverLocations = async () => {
     try {
-      const response = await fetch('http://192.168.1.93:3001/api/get-location/fordrivers');
+      const response = await fetch('http://192.168.10.116:3001/api/get-location/fordrivers');
       const data = await response.json();
       console.log("Fetched driver locations:", data); 
 
       if (response.ok) {
         const transformedData = data.locations.map((location, index) => ({
-
-          id: driver-${index},
+          
+          id: `driver-${index}`,
           latitude: location.lat,
           longitude: location.lng,
         }));
@@ -48,7 +48,8 @@ export default function MapScreen({ navigation }) {
       setErrorMsg(error.message);
     }
   };
-return (
+
+  return (
     <View style={styles.container}>
       {location ? (
         <MapView
@@ -74,7 +75,7 @@ return (
                 latitude: driver.latitude,
                 longitude: driver.longitude,
               }}
-              title={Driver ${driver.id}}
+              title={`Driver ${driver.id}`}
               pinColor="blue"
             />
           ))}
@@ -98,4 +99,3 @@ const styles = StyleSheet.create({
     height: Dimensions.get('window').height,
   },
 });
-﻿
