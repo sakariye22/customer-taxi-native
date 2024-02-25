@@ -6,6 +6,7 @@ import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import {API_KEY} from '@env';
 
 export default function MapScreen({ route, navigation }) {
   const { token, userId } = route.params;
@@ -66,7 +67,7 @@ useEffect(() => {
       setErrorMsg(error.message);
     }
   };
-  
+
 
   const requestRide = async () => {
     if (!dropoffAddress) {
@@ -158,7 +159,7 @@ useEffect(() => {
     }
   }}
   query={{
-    key: '',
+    key: API_KEY,
     language: 'en',
   }}
   styles={{
