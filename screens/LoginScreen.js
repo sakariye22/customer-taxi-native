@@ -9,12 +9,14 @@ export default function LoginScreen({ navigation }) {
   const loginUser = async () => {
     try {
       const response = await axios.post('https://api-focnoae3da-uc.a.run.app/api/login/user', {
-        email: email,
-        password: password,
+        email,
+        password,
       });
-      const { token } = response.data;
-      console.log(token);
-      navigation.navigate('Map');
+      const { token, userId } = response.data;
+      console.log(token, userId); // Logging for debugging
+  
+      // Navigate to MapScreen with token and userId
+      navigation.navigate('Map', { token, userId });
     } catch (error) {
       Alert.alert("Login Failed", "Invalid email or password");
       console.error(error);
