@@ -74,20 +74,31 @@ const fetchDriverLocations = async () => {
 
 
 
-
 const requestRide = async () => {
   if (!dropoffAddress || !pickupCoords || !destinationCoords) {
     Alert.alert("Error", "Please enter both pickup and destination.");
     return;
   }
 
+  // Adjusting the request payload to match the updated schema
   try {
+    console.log("Requesting ride with data:", {
+      userId,
+      pickupLatitude: pickupCoords.latitude,
+      pickupLongitude: pickupCoords.longitude,
+      dropoffLatitude: destinationCoords.latitude,
+      dropoffLongitude: destinationCoords.longitude,
+      fare: 10,
+    });
+
     const response = await axios.post(
       'http://192.168.1.93:3001/api/request-ride',
       {
         userId,
-        pickupLocation: pickupCoords,
-        dropoffLocation: destinationCoords,
+        pickupLatitude: pickupCoords.latitude,
+        pickupLongitude: pickupCoords.longitude,
+        dropoffLatitude: destinationCoords.latitude,
+        dropoffLongitude: destinationCoords.longitude,
         fare: 10,
       },
       {
@@ -96,8 +107,7 @@ const requestRide = async () => {
         },
       },
     );
-    
- 
+
     if (response.status === 200) {
       Alert.alert("Success", "Ride requested successfully.");
     } else {
@@ -108,6 +118,7 @@ const requestRide = async () => {
     Alert.alert("Error", error.response?.data?.message || "Failed to request ride.");
   }
 };
+
 
   
 const handleDestinationSelect = async (data, details = null) => {
