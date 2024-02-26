@@ -28,8 +28,12 @@ useEffect(() => {
 
     let currentLocation = await Location.getCurrentPositionAsync({});
     setLocation(currentLocation);
-
-    // Reverse geocoding to get an address
+    
+    setPickupCoords({
+      latitude: currentLocation.coords.latitude,
+      longitude: currentLocation.coords.longitude,
+    });
+    
     const reverseGeocode = await Location.reverseGeocodeAsync({
       latitude: currentLocation.coords.latitude,
       longitude: currentLocation.coords.longitude,
@@ -38,7 +42,7 @@ useEffect(() => {
     if (reverseGeocode.length > 0) {
       const { street, name, city, region, postalCode } = reverseGeocode[0];
       const address = `${name || street}, ${city}, ${region} ${postalCode}`;
-      setPickupAddress(address); // Set the initial pickup address
+      setPickupAddress(address); 
     }
   })();
 
@@ -46,65 +50,84 @@ useEffect(() => {
   return () => clearInterval(intervalId);
 }, []);
 
-  const fetchDriverLocations = async () => {
-    try {
-      const response = await fetch('http://192.168.1.93:3001/api/get-location/fordrivers');
-      const data = await response.json();
-      console.log("Fetched driver locations:", data);
-  
-      if (response.ok) {
-        const transformedData = data.locations.map((location, index) => ({
-          id: `driver-${index}`,
-          latitude: location.coordinates[1],
-          longitude: location.coordinates[0],
-        }));
-        setDrivers(transformedData);
-      } else {
-        throw new Error(data.message || "Failed to fetch drivers' locations");
-      }
-    } catch (error) {
-      console.error(error);
-      setErrorMsg(error.message);
+const fetchDriverLocations = async () => {
+  try {
+    const response = await fetch('http://192.168.1.93:3001/api/get-location/fordrivers');
+    const { locations } = await response.json(); 
+
+    if (response.ok && locations && Array.isArray(locations) && locations[0] !== null) {
+      const validLocations = locations.map((location, index) => ({
+        id: `driver-${index}`, 
+        latitude: location.latitude,
+        longitude: location.longitude,
+      }));
+      setDrivers(validLocations);
+    } else {
+      console.error("Received invalid driver locations:", locations);
+      setErrorMsg("Failed to fetch valid driver locations.");
     }
-  };
+  } catch (error) {
+    console.error("Fetch driver locations error:", error);
+    setErrorMsg(error.message || "Failed to fetch drivers' locations");
+  }
+};
 
 
-  const requestRide = async () => {
-    if (!dropoffAddress) {
-      Alert.alert("Error", "Please enter a destination.");
-      return;
-    }
-  
-    try {
-      const response = await axios.post(
-        'http://192.168.1.93:3001/api/request-ride',
-        {
-          userId,
-          pickupAddress, 
-          dropoffAddress,
-          fare: 10, 
+
+
+const requestRide = async () => {
+  if (!dropoffAddress || !pickupCoords || !destinationCoords) {
+    Alert.alert("Error", "Please enter both pickup and destination.");
+    return;
+  }
+
+  try {
+    const response = await axios.post(
+      'http://192.168.1.93:3001/api/request-ride',
+      {
+        userId,
+        pickupLocation: pickupCoords,
+        dropoffLocation: destinationCoords,
+        fare: 10,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-  
-      if (response.status === 200) {
-        Alert.alert("Success", "Ride requested successfully.");
-      } else {
-        throw new Error("Failed to request ride");
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", error.response?.data?.message || "Failed to request ride.");
+      },
+    );
+    
+ 
+    if (response.status === 200) {
+      Alert.alert("Success", "Ride requested successfully.");
+    } else {
+      throw new Error("Failed to request ride");
     }
-  };
+  } catch (error) {
+    console.error(error);
+    Alert.alert("Error", error.response?.data?.message || "Failed to request ride.");
+  }
+};
+
   
+const handleDestinationSelect = async (data, details = null) => {
+  try {
+    const address = details?.formatted_address;
+    setDropoffAddress(address); 
+    if (details && details.geometry && details.geometry.location) {
+      const { lat, lng } = details.geometry.location;
+      setDestinationCoords({ latitude: lat, longitude: lng });
+    } else {
+      throw new Error("Invalid address format");
+    }
+  } catch (error) {
+    console.error("Error selecting destination:", error);
+    Alert.alert("Error", "Failed to select destination. Please try again.");
+  }
+};
 
 
-
+/*
   const handleDestinationSelect = (data, details = null) => {
     const address = details?.formatted_address;
     const coords = details?.geometry?.location;
@@ -114,7 +137,7 @@ useEffect(() => {
     }
   };
 
-
+*/
   return (
     <View style={styles.container}>
       {location ? (
@@ -131,7 +154,7 @@ useEffect(() => {
               latitude: location.coords.latitude,
               longitude: location.coords.longitude,
             }}
-            title="Your Location"
+            title="user"
           />
           {drivers.map((driver) => (
             <Marker
