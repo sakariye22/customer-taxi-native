@@ -81,14 +81,13 @@ const requestRide = async () => {
   }
 
   try {
-    // Updated payload to match the backend schema expectations
     const rideRequestPayload = {
       userId,
       pickupLatitude: pickupCoords.latitude,
       pickupLongitude: pickupCoords.longitude,
       dropoffLatitude: destinationCoords.latitude,
       dropoffLongitude: destinationCoords.longitude,
-      fare: 10, // Assuming the fare is predefined or calculated elsewhere
+      fare: 10, 
     };
 
     console.log("Requesting ride with data:", rideRequestPayload);
