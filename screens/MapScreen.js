@@ -80,30 +80,26 @@ const requestRide = async () => {
     return;
   }
 
-  // Adjusting the request payload to match the updated schema
   try {
-    console.log("Requesting ride with data:", {
+    // Updated payload to match the backend schema expectations
+    const rideRequestPayload = {
       userId,
       pickupLatitude: pickupCoords.latitude,
       pickupLongitude: pickupCoords.longitude,
       dropoffLatitude: destinationCoords.latitude,
       dropoffLongitude: destinationCoords.longitude,
-      fare: 10,
-    });
+      fare: 10, // Assuming the fare is predefined or calculated elsewhere
+    };
+
+    console.log("Requesting ride with data:", rideRequestPayload);
 
     const response = await axios.post(
-      'http://192.168.1.93:3001/api/request-ride',
-      {
-        userId,
-        pickupLatitude: pickupCoords.latitude,
-        pickupLongitude: pickupCoords.longitude,
-        dropoffLatitude: destinationCoords.latitude,
-        dropoffLongitude: destinationCoords.longitude,
-        fare: 10,
-      },
+      'http://192.168.1.93:3001/api/request-ride', 
+      rideRequestPayload,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, 
+          'Content-Type': 'application/json',
         },
       },
     );
@@ -118,6 +114,7 @@ const requestRide = async () => {
     Alert.alert("Error", error.response?.data?.message || "Failed to request ride.");
   }
 };
+
 
 
   
